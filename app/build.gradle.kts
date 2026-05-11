@@ -17,14 +17,8 @@ android {
         versionName = "1.0"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+    buildFeatures {
+        compose = true
     }
 
     compileOptions {
@@ -34,10 +28,6 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
-    }
-
-    buildFeatures {
-        compose = true
     }
 }
 
@@ -52,15 +42,15 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-
     implementation("androidx.compose.material3:material3")
-
-    // Icons (Fix for Calculate, Home, Store)
     implementation("androidx.compose.material:material-icons-extended")
 
-    // Navigation (IMPORTANT for your error)
     implementation("androidx.navigation:navigation-compose:2.8.0")
 
+    // 🔥 FIREBASE (CORRECT VERSION SET)
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

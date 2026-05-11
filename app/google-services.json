@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1085325096041",
+    "project_id": "chiya-444de",
+    "storage_bucket": "chiya-444de.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1085325096041:android:8d80b7ed77ba31b950def8",
+        "android_client_info": {
+          "package_name": "com.example.bhuvana"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAr4IRhrtqmuUTDP9LvZRLn8RdrHaLicqU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,27 +6,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Store
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.bhuvana.components.BottomNavigationBar
 
+// DATA MODEL
 data class ProductItem(
     val name: String,
     val price: String
@@ -44,14 +29,10 @@ data class ProductItem(
 @Composable
 fun DashboardScreen(navController: NavController) {
 
-    var searchText by remember {
-        mutableStateOf("")
-    }
+    var searchText by remember { mutableStateOf("") }
 
     val productList = remember {
-
-        mutableStateListOf(
-
+        listOf(
             ProductItem("Tomato", "₹40/kg"),
             ProductItem("Onion", "₹32/kg"),
             ProductItem("Potato", "₹28/kg"),
@@ -59,360 +40,213 @@ fun DashboardScreen(navController: NavController) {
             ProductItem("Beans", "₹60/kg"),
             ProductItem("Cabbage", "₹35/kg"),
             ProductItem("Brinjal", "₹45/kg")
-
         )
     }
 
     val filteredProducts = productList.filter {
-
         it.name.contains(searchText, ignoreCase = true)
-
     }
 
     Scaffold(
 
-        floatingActionButton = {
-
-            FloatingActionButton(
-
-                onClick = {
-                    navController.navigate("calculator")
-                },
-
-                containerColor = Color(0xFF00C853)
-
-            ) {
-
-                Icon(
-                    imageVector = Icons.Default.Calculate,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
-        },
-
-        bottomBar = {
-
-            BottomNavigationBar(navController)
-
-        },
-
         topBar = {
-
             TopAppBar(
-
                 title = {
-
                     Text(
-                        text = "SANTE PRICE INDEX",
+                        "SANTE PRICE INDEX",
                         fontWeight = FontWeight.Bold
                     )
                 }
             )
+        },
+
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("calculator") },
+                containerColor = Color(0xFF00C853)
+            ) {
+                Icon(Icons.Default.Calculate, contentDescription = null, tint = Color.White)
+            }
+        },
+
+        bottomBar = {
+            BottomNavigationBar(navController)
         }
 
-    ) { paddingValues ->
+    ) { padding ->
 
         LazyColumn(
-
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF101416))
-                .padding(paddingValues)
+                .background(Color(0xFF0E1416))
+                .padding(padding)
                 .padding(16.dp)
-
         ) {
 
+            // HEADER
             item {
 
-                // TOP CARD
-
                 Card(
-
-                    shape = RoundedCornerShape(24.dp),
-
                     modifier = Modifier.fillMaxWidth(),
-
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.Transparent
-                    )
-
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(Color(0xFF1C1F22))
                 ) {
 
-                    Box(
+                    Column(modifier = Modifier.padding(16.dp)) {
 
-                        modifier = Modifier
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF00C853),
-                                        Color(0xFF64DD17)
-                                    )
-                                )
+                        Text(
+                            "Market Overview",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            "Prices Trending Up 🚀",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(Modifier.height(10.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.TrendingUp,
+                                contentDescription = null,
+                                tint = Color(0xFF00C853)
                             )
-                            .padding(24.dp)
 
-                    ) {
-
-                        Column {
+                            Spacer(Modifier.width(8.dp))
 
                             Text(
-                                text = "Today's Market Status",
-                                color = Color.White,
-                                fontSize = 18.sp
+                                "Market increased by 1.4%",
+                                color = Color.White
                             )
-
-                            Spacer(
-                                modifier = Modifier.height(12.dp)
-                            )
-
-                            Text(
-                                text = "Prices Trending Up",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 30.sp
-                            )
-
-                            Spacer(
-                                modifier = Modifier.height(12.dp)
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-
-                                Icon(
-                                    imageVector = Icons.Default.TrendingUp,
-                                    contentDescription = null,
-                                    tint = Color.White
-                                )
-
-                                Spacer(
-                                    modifier = Modifier.width(8.dp)
-                                )
-
-                                Text(
-                                    text = "Overall market increased by 1.4%",
-                                    color = Color.White
-                                )
-                            }
                         }
                     }
                 }
 
-                Spacer(
-                    modifier = Modifier.height(24.dp)
-                )
+                Spacer(Modifier.height(20.dp))
 
-                // SEARCH BAR
-
+                // SEARCH
                 OutlinedTextField(
-
                     value = searchText,
-
-                    onValueChange = {
-                        searchText = it
-                    },
-
+                    onValueChange = { searchText = it },
                     modifier = Modifier.fillMaxWidth(),
-
-                    placeholder = {
-                        Text("Search Products")
-                    },
-
-                    leadingIcon = {
-
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-
+                    placeholder = { Text("Search products...") },
+                    leadingIcon = { Icon(Icons.Default.Search, null) },
+                    shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
-
-                        focusedContainerColor = Color(0xFF1C2022),
-                        unfocusedContainerColor = Color(0xFF1C2022),
-
+                        focusedContainerColor = Color(0xFF1C1F22),
+                        unfocusedContainerColor = Color(0xFF1C1F22),
                         focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray
-                    ),
-
-                    shape = RoundedCornerShape(18.dp)
+                        unfocusedTextColor = Color.White
+                    )
                 )
 
-                Spacer(
-                    modifier = Modifier.height(24.dp)
-                )
-
-                // QUICK ACTIONS
+                Spacer(Modifier.height(20.dp))
 
                 Text(
-                    text = "Quick Actions",
+                    "Quick Actions",
                     color = Color.White,
-                    fontSize = 22.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
+                Spacer(Modifier.height(10.dp))
 
-                DashboardButton(
-                    title = "Profit Calculator",
-                    icon = Icons.Default.Calculate,
-                    onClick = {
-                        navController.navigate("calculator")
-                    }
-                )
+                DashboardButton("Profit Calculator", Icons.Default.Calculate) {
+                    navController.navigate("calculator")
+                }
 
-                DashboardButton(
-                    title = "Market Watch",
-                    icon = Icons.Default.Store,
-                    onClick = {
-                        navController.navigate("market")
-                    }
-                )
+                DashboardButton("Market Watch", Icons.Default.Store) {
+                    navController.navigate("market")
+                }
 
-                DashboardButton(
-                    title = "Vendor Profile",
-                    icon = Icons.Default.Person,
-                    onClick = {
-                        navController.navigate("profile")
-                    }
-                )
+                DashboardButton("Vendor Profile", Icons.Default.Person) {
+                    navController.navigate("profile")
+                }
 
-                Spacer(
-                    modifier = Modifier.height(24.dp)
-                )
+                Spacer(Modifier.height(20.dp))
 
                 Text(
-                    text = "Live Product Prices",
+                    "Live Prices",
                     color = Color.White,
-                    fontSize = 22.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
+                Spacer(Modifier.height(10.dp))
             }
 
+            // PRODUCTS
             items(filteredProducts) { product ->
-
-                ProductPriceCard(
-                    productName = product.name,
-                    productPrice = product.price
-                )
-
-                Spacer(
-                    modifier = Modifier.height(12.dp)
-                )
+                ProductCard(product)
+                Spacer(Modifier.height(10.dp))
             }
         }
     }
 }
 
 @Composable
-fun DashboardButton(
-
-    title: String,
-    icon: ImageVector,
-    onClick: () -> Unit
-
-) {
+fun DashboardButton(title: String, icon: ImageVector, onClick: () -> Unit) {
 
     Button(
-
         onClick = onClick,
-
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-
-        shape = RoundedCornerShape(18.dp),
-
+            .padding(vertical = 6.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF1C2022)
+            containerColor = Color(0xFF1C1F22)
         )
-
     ) {
 
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Color(0xFFFFC107)
-        )
+        Icon(icon, null, tint = Color(0xFFFFC107))
 
-        Spacer(
-            modifier = Modifier.width(12.dp)
-        )
+        Spacer(Modifier.width(10.dp))
 
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 18.sp
-        )
+        Text(title, color = Color.White)
     }
 }
 
 @Composable
-fun ProductPriceCard(
-
-    productName: String,
-    productPrice: String
-
-) {
+fun ProductCard(product: ProductItem) {
 
     Card(
-
         modifier = Modifier.fillMaxWidth(),
-
-        shape = RoundedCornerShape(18.dp),
-
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1C2022)
-        )
-
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(Color(0xFF1C1F22))
     ) {
 
         Row(
-
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp),
-
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
             Column {
 
                 Text(
-                    text = productName,
+                    product.name,
                     color = Color.White,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
                 Text(
-                    text = "Updated Today",
+                    "Updated today",
                     color = Color.Gray,
-                    fontSize = 14.sp
+                    fontSize = 12.sp
                 )
             }
 
             Text(
-                text = productPrice,
+                product.price,
                 color = Color(0xFFFFC107),
-                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
         }
