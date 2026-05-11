@@ -9,7 +9,16 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +36,28 @@ import com.example.bhuvana.components.BottomNavigationBar
 fun DashboardScreen(navController: NavController) {
 
     Scaffold(
+
+        floatingActionButton = {
+
+            FloatingActionButton(
+
+                onClick = {
+
+                    navController.navigate("calculator")
+
+                },
+
+                containerColor = Color(0xFF00C853)
+
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Calculate,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        },
 
         bottomBar = {
 
@@ -133,6 +164,65 @@ fun DashboardScreen(navController: NavController) {
                             }
                         }
                     }
+                }
+
+                Spacer(
+                    modifier = Modifier.height(24.dp)
+                )
+
+                Text(
+                    text = "Today's Statistics",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    StatsCard(
+                        title = "Vendors",
+                        value = "245",
+                        cardColor = Color(0xFF2962FF),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    StatsCard(
+                        title = "Profit",
+                        value = "₹12K",
+                        cardColor = Color(0xFF00C853),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    StatsCard(
+                        title = "Growth",
+                        value = "+18%",
+                        cardColor = Color(0xFFFF6D00),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    StatsCard(
+                        title = "Products",
+                        value = "56",
+                        cardColor = Color(0xFFAA00FF),
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
                 Spacer(
@@ -271,5 +361,57 @@ fun DashboardButton(
             color = Color.White,
             fontSize = 18.sp
         )
+    }
+}
+
+@Composable
+fun StatsCard(
+
+    title: String,
+    value: String,
+    cardColor: Color,
+    modifier: Modifier = Modifier
+
+) {
+
+    Card(
+
+        modifier = modifier.height(120.dp),
+
+        shape = RoundedCornerShape(20.dp),
+
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor
+        )
+
+    ) {
+
+        Column(
+
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+
+            verticalArrangement = Arrangement.Center
+
+        ) {
+
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 18.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(10.dp)
+            )
+
+            Text(
+                text = value,
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
