@@ -1,9 +1,7 @@
-package com.example.bhuvana.model
+package com.example.bhuvana.models
 
-data class Product(
-
-    val name: String,
-    val price: String,
-    val trend: String
-
+data class ProductItem(
+    val id: String = "",      // Firestore document ID
+    val name: String = "",
+    val price: String = ""
 )

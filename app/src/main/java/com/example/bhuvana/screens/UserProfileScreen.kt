@@ -11,42 +11,16 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun UserProfileScreen() {
-
     Column(
-
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-
+        modifier = Modifier.fillMaxSize().padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-
     ) {
-
-        Text(
-            text = "Vendor Profile",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
-
+        Text("Vendor Profile", fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Name : Gowtham",
-            fontSize = 20.sp
-        )
-
+        Text("Name : Gowtham", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Profession : Vendor",
-            fontSize = 20.sp
-        )
-
+        Text("Profession : Vendor", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Experience : 5 Years",
-            fontSize = 20.sp
-        )
+        Text("Experience : 5 Years", fontSize = 20.sp)
     }
 }

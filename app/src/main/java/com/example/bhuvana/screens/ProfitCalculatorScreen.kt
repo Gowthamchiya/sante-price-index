@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -11,9 +12,12 @@ import androidx.compose.ui.unit.sp
 fun ProfitCalculatorScreen() {
 
     var buyingPrice by remember { mutableStateOf("") }
-    var sellingPrice by remember { mutableStateOf("") }
+    var transportCost by remember { mutableStateOf("") }
+    var profitMargin by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf(0.0) }
+
+    var rrp by remember { mutableStateOf(0.0) }
+    var netProfit by remember { mutableStateOf(0.0) }
 
     Column(
         modifier = Modifier
@@ -23,48 +27,87 @@ fun ProfitCalculatorScreen() {
 
         Text(
             text = "Profit Calculator",
-            fontSize = 26.sp
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = buyingPrice,
-            onValueChange = { buyingPrice = it },
-            label = { Text("Buying Price") }
-        )
-
-        OutlinedTextField(
-            value = sellingPrice,
-            onValueChange = { sellingPrice = it },
-            label = { Text("Selling Price") }
-        )
-
-        OutlinedTextField(
-            value = quantity,
-            onValueChange = { quantity = it },
-            label = { Text("Quantity") }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-
-            val buy = buyingPrice.toDoubleOrNull() ?: 0.0
-            val sell = sellingPrice.toDoubleOrNull() ?: 0.0
-            val qty = quantity.toDoubleOrNull() ?: 0.0
-
-            result = (sell - buy) * qty
-
-        }) {
-            Text("Calculate")
-        }
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Buying Price
+        OutlinedTextField(
+            value = buyingPrice,
+            onValueChange = { buyingPrice = it },
+            label = { Text("Buying Price per kg") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Transport Cost
+        OutlinedTextField(
+            value = transportCost,
+            onValueChange = { transportCost = it },
+            label = { Text("Transport Cost per kg") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Profit Margin
+        OutlinedTextField(
+            value = profitMargin,
+            onValueChange = { profitMargin = it },
+            label = { Text("Profit Margin per kg") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Quantity
+        OutlinedTextField(
+            value = quantity,
+            onValueChange = { quantity = it },
+            label = { Text("Quantity (kg)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Calculate Button
+        Button(
+            onClick = {
+                val buy = buyingPrice.toDoubleOrNull() ?: 0.0
+                val transport = transportCost.toDoubleOrNull() ?: 0.0
+                val profit = profitMargin.toDoubleOrNull() ?: 0.0
+                val qty = quantity.toDoubleOrNull() ?: 0.0
+
+                // Recommended Retail Price per kg
+                rrp = buy + transport + profit
+
+                // Net Profit = (RRP - Buying Price - Transport) * Quantity
+                netProfit = (rrp - buy - transport) * qty
+
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Calculate")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Output
         Text(
-            text = "Profit = ₹$result",
-            fontSize = 22.sp
+            text = "Recommended Retail Price (RRP) = ₹$rrp per kg",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Net Profit = ₹$netProfit",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
