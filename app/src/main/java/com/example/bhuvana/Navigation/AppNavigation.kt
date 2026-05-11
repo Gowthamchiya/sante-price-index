@@ -5,22 +5,59 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.bhuvana.screens.*
+import com.example.bhuvana.screens.AddProductScreen
+import com.example.bhuvana.screens.DashboardScreen
+import com.example.bhuvana.screens.DigitalSlateScreen
+import com.example.bhuvana.screens.EditProductScreen
+import com.example.bhuvana.screens.MarketWatchScreen
+import com.example.bhuvana.screens.ProfitCalculatorScreen
+import com.example.bhuvana.screens.UserProfileScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "dashboard") {
-        composable("dashboard") { DashboardScreen(navController) }
-        composable("calculator") { ProfitCalculatorScreen() }
-        composable("market") { MarketWatchScreen(navController) }
-        composable("profile") { UserProfileScreen() }
-        composable("addProduct") { AddProductScreen() }
+
+    NavHost(
+        navController = navController,
+        startDestination = "dashboard"
+    ) {
+
+        composable("dashboard") {
+            DashboardScreen(navController)
+        }
+
+        composable("market") {
+            MarketWatchScreen(navController)
+        }
+
+        composable("calculator") {
+            ProfitCalculatorScreen()
+        }
+
+        composable("digitalSlate") {
+            DigitalSlateScreen()
+        }
+
+        composable("profile") {
+            UserProfileScreen()
+        }
+
+        composable("addProduct") {
+            AddProductScreen()
+        }
 
         composable(
-            "editProduct/{id}",
-            arguments = listOf(navArgument("id") { defaultValue = "" })
+            route = "editProduct/{id}",
+            arguments = listOf(
+                navArgument("id") {
+                    defaultValue = ""
+                }
+            )
         ) { backStackEntry ->
-            EditProductScreen(navController, backStackEntry)
+
+            EditProductScreen(
+                navController = navController,
+                backStackEntry = backStackEntry
+            )
         }
     }
 }

@@ -26,21 +26,14 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun TopMarketBanner() {
-
     Card(
-
         modifier = Modifier.fillMaxWidth(),
-
         shape = RoundedCornerShape(24.dp),
-
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent
         )
-
     ) {
-
         Column(
-
             modifier = Modifier
                 .background(
                     brush = Brush.linearGradient(
@@ -51,35 +44,28 @@ fun TopMarketBanner() {
                     )
                 )
                 .padding(24.dp)
-
         ) {
-
             Text(
-                text = "Live Market Update",
+                text = "Today's Market Status",
                 color = Color.White,
                 fontSize = 18.sp
             )
 
-            Spacer(
-                modifier = Modifier.height(10.dp)
-            )
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "Tomato Prices Rising",
+                text = "Prices Trending Up",
                 color = Color.White,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-
                 Icon(
                     imageVector = Icons.Default.TrendingUp,
                     contentDescription = null,
@@ -87,7 +73,7 @@ fun TopMarketBanner() {
                 )
 
                 Text(
-                    text = "Increase by 12% this week",
+                    text = "Overall market increased by 12%",
                     color = Color.White,
                     fontSize = 16.sp
                 )
