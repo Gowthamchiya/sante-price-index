@@ -3,10 +3,12 @@ package com.example.bhuvana.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
@@ -16,10 +18,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,9 +35,39 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.bhuvana.components.BottomNavigationBar
 
+data class ProductItem(
+    val name: String,
+    val price: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(navController: NavController) {
+
+    var searchText by remember {
+        mutableStateOf("")
+    }
+
+    val productList = remember {
+
+        mutableStateListOf(
+
+            ProductItem("Tomato", "₹40/kg"),
+            ProductItem("Onion", "₹32/kg"),
+            ProductItem("Potato", "₹28/kg"),
+            ProductItem("Carrot", "₹55/kg"),
+            ProductItem("Beans", "₹60/kg"),
+            ProductItem("Cabbage", "₹35/kg"),
+            ProductItem("Brinjal", "₹45/kg")
+
+        )
+    }
+
+    val filteredProducts = productList.filter {
+
+        it.name.contains(searchText, ignoreCase = true)
+
+    }
 
     Scaffold(
 
@@ -42,9 +76,7 @@ fun DashboardScreen(navController: NavController) {
             FloatingActionButton(
 
                 onClick = {
-
                     navController.navigate("calculator")
-
                 },
 
                 containerColor = Color(0xFF00C853)
@@ -92,6 +124,8 @@ fun DashboardScreen(navController: NavController) {
         ) {
 
             item {
+
+                // TOP CARD
 
                 Card(
 
@@ -170,64 +204,50 @@ fun DashboardScreen(navController: NavController) {
                     modifier = Modifier.height(24.dp)
                 )
 
-                Text(
-                    text = "Today's Statistics",
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                // SEARCH BAR
 
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
+                OutlinedTextField(
 
-                Row(
+                    value = searchText,
+
+                    onValueChange = {
+                        searchText = it
+                    },
+
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
 
-                    StatsCard(
-                        title = "Vendors",
-                        value = "245",
-                        cardColor = Color(0xFF2962FF),
-                        modifier = Modifier.weight(1f)
-                    )
+                    placeholder = {
+                        Text("Search Products")
+                    },
 
-                    StatsCard(
-                        title = "Profit",
-                        value = "₹12K",
-                        cardColor = Color(0xFF00C853),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                    leadingIcon = {
 
-                Spacer(
-                    modifier = Modifier.height(12.dp)
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+
+                    colors = TextFieldDefaults.colors(
+
+                        focusedContainerColor = Color(0xFF1C2022),
+                        unfocusedContainerColor = Color(0xFF1C2022),
+
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray
+                    ),
+
+                    shape = RoundedCornerShape(18.dp)
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-
-                    StatsCard(
-                        title = "Growth",
-                        value = "+18%",
-                        cardColor = Color(0xFFFF6D00),
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    StatsCard(
-                        title = "Products",
-                        value = "56",
-                        cardColor = Color(0xFFAA00FF),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
 
                 Spacer(
                     modifier = Modifier.height(24.dp)
                 )
+
+                // QUICK ACTIONS
 
                 Text(
                     text = "Quick Actions",
@@ -268,53 +288,27 @@ fun DashboardScreen(navController: NavController) {
                     modifier = Modifier.height(24.dp)
                 )
 
-                Card(
-
-                    shape = RoundedCornerShape(20.dp),
-
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF1C2022)
-                    ),
-
-                    modifier = Modifier.fillMaxWidth()
-
-                ) {
-
-                    Column(
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-
-                        Text(
-                            text = "Top Selling Product",
-                            color = Color.Gray,
-                            fontSize = 16.sp
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(10.dp)
-                        )
-
-                        Text(
-                            text = "Tomato",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 28.sp
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(6.dp)
-                        )
-
-                        Text(
-                            text = "₹40/kg",
-                            color = Color(0xFFFFC107),
-                            fontSize = 22.sp
-                        )
-                    }
-                }
+                Text(
+                    text = "Live Product Prices",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
                 Spacer(
-                    modifier = Modifier.height(20.dp)
+                    modifier = Modifier.height(16.dp)
+                )
+            }
+
+            items(filteredProducts) { product ->
+
+                ProductPriceCard(
+                    productName = product.name,
+                    productPrice = product.price
+                )
+
+                Spacer(
+                    modifier = Modifier.height(12.dp)
                 )
             }
         }
@@ -365,51 +359,60 @@ fun DashboardButton(
 }
 
 @Composable
-fun StatsCard(
+fun ProductPriceCard(
 
-    title: String,
-    value: String,
-    cardColor: Color,
-    modifier: Modifier = Modifier
+    productName: String,
+    productPrice: String
 
 ) {
 
     Card(
 
-        modifier = modifier.height(120.dp),
+        modifier = Modifier.fillMaxWidth(),
 
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(18.dp),
 
         colors = CardDefaults.cardColors(
-            containerColor = cardColor
+            containerColor = Color(0xFF1C2022)
         )
 
     ) {
 
-        Column(
+        Row(
 
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+                .fillMaxWidth()
+                .padding(18.dp),
 
-            verticalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
 
         ) {
 
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 18.sp
-            )
+            Column {
 
-            Spacer(
-                modifier = Modifier.height(10.dp)
-            )
+                Text(
+                    text = productName,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
+
+                Text(
+                    text = "Updated Today",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
 
             Text(
-                text = value,
-                color = Color.White,
-                fontSize = 28.sp,
+                text = productPrice,
+                color = Color(0xFFFFC107),
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
         }
