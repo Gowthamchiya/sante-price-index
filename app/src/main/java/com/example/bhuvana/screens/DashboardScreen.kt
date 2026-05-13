@@ -2,36 +2,66 @@ package com.example.bhuvana.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.ViewModule
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.bhuvana.components.BottomNavigationBar
 import com.example.bhuvana.models.ProductItem
+import com.example.bhuvana.security.AdminSecurity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -41,10 +71,25 @@ fun DashboardScreen(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
 
     var productList by remember { mutableStateOf(listOf<ProductItem>()) }
+
     var productToDelete by remember { mutableStateOf<ProductItem?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    var showAdminDialog by remember { mutableStateOf(false) }
+    var adminPin by remember { mutableStateOf("") }
+    var pinError by remember { mutableStateOf("") }
+    var pendingAction by remember { mutableStateOf("") }
+    var pendingProduct by remember { mutableStateOf<ProductItem?>(null) }
+
     var listener: ListenerRegistration? = null
+
+    val highProducts = productList.count {
+        extractDashboardPriceValue(it.price) >= 50.0
+    }
+
+    val lowProducts = productList.count {
+        extractDashboardPriceValue(it.price) < 50.0
+    }
 
     LaunchedEffect(Unit) {
         listener = db.collection("products")
@@ -70,6 +115,120 @@ fun DashboardScreen(navController: NavController) {
         }
     }
 
+    if (showAdminDialog) {
+
+        AlertDialog(
+            onDismissRequest = {
+                showAdminDialog = false
+                adminPin = ""
+                pinError = ""
+                pendingAction = ""
+                pendingProduct = null
+            },
+            title = {
+                Text("Admin Verification")
+            },
+            text = {
+                Column {
+
+                    Text(
+                        text = "Enter admin PIN to continue",
+                        color = Color.Gray
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = adminPin,
+                        onValueChange = {
+                            adminPin = it
+                            pinError = ""
+                        },
+                        label = {
+                            Text("Admin PIN")
+                        },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (pinError.isNotBlank()) {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = pinError,
+                            color = Color.Red,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+
+                        if (AdminSecurity.isValidPin(adminPin)) {
+
+                            showAdminDialog = false
+                            pinError = ""
+
+                            when (pendingAction) {
+
+                                "ADD" -> {
+                                    navController.navigate("addProduct")
+                                }
+
+                                "EDIT" -> {
+                                    pendingProduct?.let { product ->
+                                        navController.navigate("editProduct/${product.id}")
+                                    }
+                                }
+
+                                "DELETE" -> {
+                                    productToDelete = pendingProduct
+                                    showDeleteDialog = true
+                                }
+                            }
+
+                            adminPin = ""
+                            pendingAction = ""
+                            pendingProduct = null
+
+                        } else {
+                            pinError = "Invalid PIN"
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF00B37E)
+                    )
+                ) {
+                    Text(
+                        text = "Verify",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        showAdminDialog = false
+                        adminPin = ""
+                        pinError = ""
+                        pendingAction = ""
+                        pendingProduct = null
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     if (showDeleteDialog && productToDelete != null) {
 
         AlertDialog(
@@ -81,7 +240,7 @@ fun DashboardScreen(navController: NavController) {
                 Text("Delete Product")
             },
             text = {
-                Text("Delete ${productToDelete?.name}?")
+                Text("Are you sure you want to delete ${productToDelete?.name}?")
             },
             confirmButton = {
                 Button(
@@ -117,7 +276,11 @@ fun DashboardScreen(navController: NavController) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate("addProduct")
+                    pendingAction = "ADD"
+                    pendingProduct = null
+                    adminPin = ""
+                    pinError = ""
+                    showAdminDialog = true
                 },
                 containerColor = Color(0xFF00B37E)
             ) {
@@ -129,7 +292,7 @@ fun DashboardScreen(navController: NavController) {
             }
         },
         bottomBar = {
-            PremiumBottomBar(navController)
+            BottomNavigationBar(navController)
         },
         containerColor = Color(0xFF07110D)
     ) { padding ->
@@ -152,11 +315,21 @@ fun DashboardScreen(navController: NavController) {
 
             item {
 
-                PremiumTopHeader()
+                DashboardHeader()
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                MarketHealthCard(navController)
+                DashboardMarketCard(
+                    navController = navController,
+                    totalProducts = productList.size
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PriceRuleCard(
+                    highProducts = highProducts,
+                    lowProducts = lowProducts
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -167,28 +340,29 @@ fun DashboardScreen(navController: NavController) {
                 CommodityTrendsCard(
                     products = productList,
                     onEditClick = { product ->
-                        navController.navigate("editProduct/${product.id}")
+                        pendingAction = "EDIT"
+                        pendingProduct = product
+                        adminPin = ""
+                        pinError = ""
+                        showAdminDialog = true
                     },
                     onDeleteClick = { product ->
-                        productToDelete = product
-                        showDeleteDialog = true
+                        pendingAction = "DELETE"
+                        pendingProduct = product
+                        adminPin = ""
+                        pinError = ""
+                        showAdminDialog = true
                     }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                RegionalHubCard()
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                PremiumGrowthCard()
             }
         }
     }
 }
 
 @Composable
-fun PremiumTopHeader() {
+fun DashboardHeader() {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -210,7 +384,7 @@ fun PremiumTopHeader() {
                 Icon(
                     imageVector = Icons.Default.Store,
                     contentDescription = null,
-                    tint = Color(0xFF43F5B6)
+                    tint = Color(0xFF55F7B6)
                 )
             }
 
@@ -220,6 +394,7 @@ fun PremiumTopHeader() {
                 text = "SANTE-PRICE\nINDEX",
                 color = Color(0xFF55F7B6),
                 fontSize = 25.sp,
+                lineHeight = 25.sp,
                 fontWeight = FontWeight.Black
             )
         }
@@ -233,7 +408,10 @@ fun PremiumTopHeader() {
 }
 
 @Composable
-fun MarketHealthCard(navController: NavController) {
+fun DashboardMarketCard(
+    navController: NavController,
+    totalProducts: Int
+) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -262,41 +440,26 @@ fun MarketHealthCard(navController: NavController) {
         ) {
 
             Text(
-                text = "MARKET HEALTH",
+                text = "MARKET OVERVIEW",
                 color = Color.White.copy(alpha = 0.75f),
                 fontSize = 12.sp,
                 letterSpacing = 2.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Text(
-                    text = "Prices\ntrending\nUP",
-                    color = Color(0xFF55F7B6),
-                    fontSize = 38.sp,
-                    fontWeight = FontWeight.Black,
-                    lineHeight = 44.sp
-                )
-
-                Icon(
-                    imageVector = Icons.Default.TrendingUp,
-                    contentDescription = null,
-                    tint = Color(0xFF55F7B6),
-                    modifier = Modifier.size(36.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Aggregate market sentiment is bullish. Commodity volumes are stabilizing across regional hubs.",
+                text = "$totalProducts Live Products",
+                color = Color(0xFF55F7B6),
+                fontSize = 34.sp,
+                fontWeight = FontWeight.Black
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Live Firebase prices are synced with Price Watch and Customer Board.",
                 color = Color.White.copy(alpha = 0.80f),
                 fontSize = 15.sp,
                 lineHeight = 21.sp
@@ -313,38 +476,179 @@ fun MarketHealthCard(navController: NavController) {
                     onClick = {
                         navController.navigate("calculator")
                     },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF00B37E)
                     )
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Calculate,
+                        contentDescription = null,
+                        tint = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
                     Text(
-                        text = "CALCULATE\nPROFIT",
+                        text = "Calc",
                         color = Color.Black,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                OutlinedButton(
+                Button(
                     onClick = {
                         navController.navigate("digitalSlate")
                     },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFFFFD84D)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFD84D)
                     )
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.ViewModule,
+                        contentDescription = null,
+                        tint = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
                     Text(
-                        text = "OPEN PRICE\nBOARD",
-                        color = Color(0xFFFFD84D),
-                        fontSize = 12.sp,
+                        text = "Board",
+                        color = Color.Black,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PriceRuleCard(
+    highProducts: Int,
+    lowProducts: Int
+) {
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF151817)
+        )
+    ) {
+
+        Column(
+            modifier = Modifier
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFF25332E),
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .padding(20.dp)
+        ) {
+
+            Text(
+                text = "₹50 Price Rule",
+                color = Color.White,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "₹50 or above = UP. Below ₹50 = DOWN.",
+                color = Color.White.copy(alpha = 0.72f),
+                fontSize = 14.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+
+                RuleMiniCard(
+                    title = "UP",
+                    value = highProducts.toString(),
+                    color = Color(0xFFFFD84D),
+                    iconUp = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                RuleMiniCard(
+                    title = "DOWN",
+                    value = lowProducts.toString(),
+                    color = Color(0xFF55F7B6),
+                    iconUp = false,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RuleMiniCard(
+    title: String,
+    value: String,
+    color: Color,
+    iconUp: Boolean,
+    modifier: Modifier = Modifier
+) {
+
+    Row(
+        modifier = modifier
+            .background(
+                color = Color(0xFF101513),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = Color(0xFF25332E),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Icon(
+            imageVector =
+                if (iconUp)
+                    Icons.Default.TrendingUp
+                else
+                    Icons.Default.TrendingDown,
+            contentDescription = null,
+            tint = color
+        )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Column {
+
+            Text(
+                text = title,
+                color = Color.White.copy(alpha = 0.65f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = value,
+                color = color,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black
+            )
         }
     }
 }
@@ -364,7 +668,7 @@ fun InventoryValueCard(totalProducts: Int) {
             modifier = Modifier
                 .border(
                     width = 1.dp,
-                    color = Color(0xFF174B38),
+                    color = Color(0xFF25332E),
                     shape = RoundedCornerShape(18.dp)
                 )
                 .padding(22.dp)
@@ -376,10 +680,9 @@ fun InventoryValueCard(totalProducts: Int) {
             ) {
 
                 Text(
-                    text = "INVENTORY VALUE",
+                    text = "Inventory Summary",
                     color = Color.White.copy(alpha = 0.75f),
-                    fontSize = 12.sp,
-                    letterSpacing = 2.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -390,48 +693,25 @@ fun InventoryValueCard(totalProducts: Int) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "₹${totalProducts * 450}.00",
+                text = "$totalProducts Products Available",
                 color = Color(0xFFFFD84D),
-                fontSize = 40.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Black
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            Text(
-                text = "+4.2% from yesterday",
-                color = Color(0xFF43F5B6),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(22.dp))
-
-            Box(
+            LinearProgressIndicator(
+                progress = 0.75f,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(50.dp))
-                    .background(Color.DarkGray)
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.75f)
-                        .height(5.dp)
-                        .background(Color(0xFFFFD84D))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Storage Capacity : 75% full",
-                color = Color.White,
-                fontSize = 11.sp
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(50.dp)),
+                color = Color(0xFFFFD84D),
+                trackColor = Color(0xFF2D3330)
             )
         }
     }
@@ -462,27 +742,14 @@ fun CommodityTrendsCard(
                 .padding(22.dp)
         ) {
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Text(
+                text = "Latest Products",
+                color = Color.White,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-                Text(
-                    text = "Commodity Trends",
-                    color = Color.White,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "View All",
-                    color = Color(0xFF55F7B6),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             if (products.isEmpty()) {
 
@@ -506,7 +773,7 @@ fun CommodityTrendsCard(
                         }
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                 }
             }
         }
@@ -520,6 +787,21 @@ fun CommodityRow(
     onDeleteClick: () -> Unit
 ) {
 
+    val priceValue = extractDashboardPriceValue(product.price)
+    val isUp = priceValue >= 50.0
+
+    val trendColor =
+        if (isUp)
+            Color(0xFFFFD84D)
+        else
+            Color(0xFF55F7B6)
+
+    val trendText =
+        if (isUp)
+            "UP"
+        else
+            "DOWN"
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -527,7 +809,7 @@ fun CommodityRow(
 
         Box(
             modifier = Modifier
-                .size(34.dp)
+                .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color(0xFF26332F)),
             contentAlignment = Alignment.Center
@@ -572,10 +854,10 @@ fun CommodityRow(
             )
 
             Text(
-                text = "+8.1%",
-                color = Color(0xFF55F7B6),
+                text = trendText,
+                color = trendColor,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Black
             )
         }
 
@@ -584,7 +866,7 @@ fun CommodityRow(
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
-                contentDescription = null,
+                contentDescription = "Edit",
                 tint = Color(0xFFFFD84D)
             )
         }
@@ -594,192 +876,17 @@ fun CommodityRow(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = null,
+                contentDescription = "Delete",
                 tint = Color.Red
             )
         }
     }
 }
 
-@Composable
-fun RegionalHubCard() {
+fun extractDashboardPriceValue(priceText: String): Double {
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF151817)
-        )
-    ) {
+    val cleanText =
+        priceText.replace("[^0-9.]".toRegex(), "")
 
-        Column(
-            modifier = Modifier.padding(22.dp)
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(170.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color(0xFF1D3A32),
-                                Color(0xFF0D1110)
-                            )
-                        )
-                    )
-                    .padding(18.dp),
-                contentAlignment = Alignment.BottomStart
-            ) {
-
-                Column {
-
-                    Text(
-                        text = "REGIONAL HUBS",
-                        color = Color(0xFFFFD84D),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Black
-                    )
-
-                    Text(
-                        text = "Sante Local Market",
-                        color = Color.White,
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        text = "Active Trading • High Volume",
-                        color = Color.White,
-                        fontSize = 13.sp
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PremiumGrowthCard() {
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF151817)
-        )
-    ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Icon(
-                imageVector = Icons.Default.Shield,
-                contentDescription = null,
-                tint = Color(0xFFFFD84D),
-                modifier = Modifier.size(48.dp)
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text(
-                text = "Premium Growth Plan",
-                color = Color.White,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Text(
-                text = "Access real-time price predictions and expert market analysis for your inventory.",
-                color = Color.White.copy(alpha = 0.82f),
-                fontSize = 16.sp,
-                lineHeight = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { },
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFD84D)
-                )
-            ) {
-
-                Text(
-                    text = "UPGRADE TO PRO",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun PremiumBottomBar(navController: NavController) {
-
-    NavigationBar(
-        containerColor = Color(0xFF191C1B)
-    ) {
-
-        NavigationBarItem(
-            selected = true,
-            onClick = {
-                navController.navigate("dashboard")
-            },
-            icon = {
-                Icon(Icons.Default.Home, contentDescription = null)
-            },
-            label = {
-                Text("HOME")
-            }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("market")
-            },
-            icon = {
-                Icon(Icons.Default.TrendingUp, contentDescription = null)
-            },
-            label = {
-                Text("PRICES")
-            }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("calculator")
-            },
-            icon = {
-                Icon(Icons.Default.Calculate, contentDescription = null)
-            },
-            label = {
-                Text("CALC")
-            }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("digitalSlate")
-            },
-            icon = {
-                Icon(Icons.Default.ViewModule, contentDescription = null)
-            },
-            label = {
-                Text("BOARD")
-            }
-        )
-    }
+    return cleanText.toDoubleOrNull() ?: 0.0
 }

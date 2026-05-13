@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,13 +18,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -56,15 +65,30 @@ fun MarketWatchScreen(navController: NavController) {
         mutableStateOf(listOf<ProductItem>())
     }
 
+    var searchText by remember {
+        mutableStateOf("")
+    }
+
     var visible by remember {
         mutableStateOf(false)
     }
 
     var listener: ListenerRegistration? = null
 
-    LaunchedEffect(Unit) {
+    val filteredProducts = productList.filter {
+        it.name.contains(searchText, ignoreCase = true)
+    }
 
-        delay(200)
+    val highProducts = productList.count {
+        extractPriceValue(it.price) >= 50.0
+    }
+
+    val lowProducts = productList.count {
+        extractPriceValue(it.price) < 50.0
+    }
+
+    LaunchedEffect(Unit) {
+        delay(150)
         visible = true
 
         listener = db.collection("products")
@@ -75,9 +99,7 @@ fun MarketWatchScreen(navController: NavController) {
                 }
 
                 if (snapshot != null) {
-
                     productList = snapshot.documents.map { document ->
-
                         ProductItem(
                             id = document.id,
                             name = document.getString("name") ?: "",
@@ -89,7 +111,6 @@ fun MarketWatchScreen(navController: NavController) {
     }
 
     DisposableEffect(Unit) {
-
         onDispose {
             listener?.remove()
         }
@@ -111,7 +132,7 @@ fun MarketWatchScreen(navController: NavController) {
                         listOf(
                             Color(0xFF07110D),
                             Color(0xFF0B1712),
-                            Color(0xFF07110D)
+                            Color(0xFF050806)
                         )
                     )
                 )
@@ -120,76 +141,144 @@ fun MarketWatchScreen(navController: NavController) {
 
             item {
 
-                Text(
-                    text = "PRICE WATCH",
-                    color = Color(0xFF55F7B6),
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Black
+                CleanMarketHeader()
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                CleanMarketSummaryCard(
+                    totalProducts = productList.size,
+                    highProducts = highProducts,
+                    lowProducts = lowProducts
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "Live mandi prices synced with Firebase",
-                    color = Color.White.copy(alpha = 0.75f),
-                    fontSize = 15.sp
+                CleanMarketSearchBox(
+                    searchText = searchText,
+                    onSearchChange = {
+                        searchText = it
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                MarketWatchTopCard(
-                    totalProducts = productList.size
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                Spacer(modifier = Modifier.height(22.dp))
+                    Text(
+                        text = "Products",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black
+                    )
 
-                Text(
-                    text = "Live Market Products",
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                    Text(
+                        text = "${filteredProducts.size} live",
+                        color = Color(0xFF55F7B6),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            if (productList.isEmpty()) {
+            if (filteredProducts.isEmpty()) {
 
                 item {
-
-                    EmptyMarketState()
+                    CleanEmptyMarketState()
                 }
 
             } else {
 
-                items(productList) { product ->
+                items(filteredProducts) { product ->
 
                     AnimatedVisibility(
                         visible = visible,
                         enter = fadeIn() + slideInVertically()
                     ) {
 
-                        MarketProductCard(
-                            productName = product.name,
-                            price = product.price
+                        CleanProductTrendCard(
+                            product = product
                         )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
+
+            item {
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                CleanSentimentCard(
+                    highProducts = highProducts,
+                    lowProducts = lowProducts
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+            }
         }
     }
 }
 
 @Composable
-fun MarketWatchTopCard(
-    totalProducts: Int
+fun CleanMarketHeader() {
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Column {
+
+            Text(
+                text = "Price Watch",
+                color = Color(0xFF55F7B6),
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Black
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Live market price analysis",
+                color = Color.White.copy(alpha = 0.70f),
+                fontSize = 15.sp
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF12352B)),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Icon(
+                imageVector = Icons.Default.WifiTethering,
+                contentDescription = null,
+                tint = Color(0xFF55F7B6)
+            )
+        }
+    }
+}
+
+@Composable
+fun CleanMarketSummaryCard(
+    totalProducts: Int,
+    highProducts: Int,
+    lowProducts: Int
 ) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(26.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent
         )
@@ -208,56 +297,56 @@ fun MarketWatchTopCard(
                 .border(
                     width = 1.dp,
                     color = Color(0xFF25332E),
-                    shape = RoundedCornerShape(22.dp)
+                    shape = RoundedCornerShape(26.dp)
                 )
-                .padding(22.dp)
+                .padding(20.dp)
         ) {
 
             Text(
-                text = "MARKET INTELLIGENCE",
-                color = Color.White.copy(alpha = 0.75f),
+                text = "LIVE MARKET STATUS",
+                color = Color(0xFF55F7B6),
                 fontSize = 12.sp,
-                letterSpacing = 2.sp,
-                fontWeight = FontWeight.Bold
+                letterSpacing = 1.6.sp,
+                fontWeight = FontWeight.Black
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "$totalProducts Products Live",
-                color = Color(0xFF55F7B6),
-                fontSize = 34.sp,
+                text = "$totalProducts Products Synced",
+                color = Color.White,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Black
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Prices are updated instantly from Firebase and synced with Customer Price Board.",
-                color = Color.White.copy(alpha = 0.82f),
-                fontSize = 15.sp,
-                lineHeight = 21.sp
+                text = "Prices are updated from Firebase and classified using the ₹50 rule.",
+                color = Color.White.copy(alpha = 0.72f),
+                fontSize = 14.sp,
+                lineHeight = 20.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
 
-                Icon(
-                    imageVector = Icons.Default.TrendingUp,
-                    contentDescription = null,
-                    tint = Color(0xFF55F7B6)
+                CleanMiniStatCard(
+                    title = "UP",
+                    value = highProducts.toString(),
+                    color = Color(0xFFFFD84D),
+                    modifier = Modifier.weight(1f)
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "Market status: Active and live",
+                CleanMiniStatCard(
+                    title = "DOWN",
+                    value = lowProducts.toString(),
                     color = Color(0xFF55F7B6),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -265,14 +354,113 @@ fun MarketWatchTopCard(
 }
 
 @Composable
-fun MarketProductCard(
-    productName: String,
-    price: String
+fun CleanMiniStatCard(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
+
+    Column(
+        modifier = modifier
+            .background(
+                color = Color(0xFF101513),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = Color(0xFF25332E),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(14.dp)
+    ) {
+
+        Text(
+            text = title,
+            color = Color.White.copy(alpha = 0.62f),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = value,
+            color = color,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Black
+        )
+    }
+}
+
+@Composable
+fun CleanMarketSearchBox(
+    searchText: String,
+    onSearchChange: (String) -> Unit
+) {
+
+    OutlinedTextField(
+        value = searchText,
+        onValueChange = onSearchChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = {
+            Text("Search product")
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null
+            )
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(22.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedBorderColor = Color(0xFF55F7B6),
+            unfocusedBorderColor = Color(0xFF25332E),
+            focusedLabelColor = Color(0xFF55F7B6),
+            unfocusedLabelColor = Color.Gray,
+            cursorColor = Color(0xFF55F7B6)
+        )
+    )
+}
+
+@Composable
+fun CleanProductTrendCard(
+    product: ProductItem
+) {
+
+    val priceValue = extractPriceValue(product.price)
+    val isHighValue = priceValue >= 50.0
+
+    val trendColor =
+        if (isHighValue)
+            Color(0xFFFFD84D)
+        else
+            Color(0xFF55F7B6)
+
+    val trendIcon =
+        if (isHighValue)
+            Icons.Default.TrendingUp
+        else
+            Icons.Default.TrendingDown
+
+    val trendTitle =
+        if (isHighValue)
+            "UP"
+        else
+            "DOWN"
+
+    val shortDescription =
+        if (isHighValue)
+            "Above ₹50. High value item, keep margin carefully."
+        else
+            "Below ₹50. Low value item, keep price attractive."
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF151817)
         )
@@ -284,71 +472,209 @@ fun MarketProductCard(
                 .border(
                     width = 1.dp,
                     color = Color(0xFF25332E),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(24.dp)
                 )
                 .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Icon(
-                imageVector = Icons.Default.Eco,
-                contentDescription = null,
-                tint = Color(0xFF55F7B6),
-                modifier = Modifier.size(42.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF12352B)),
+                contentAlignment = Alignment.Center
+            ) {
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Icon(
+                    imageVector = Icons.Default.Agriculture,
+                    contentDescription = null,
+                    tint = Color(0xFF55F7B6),
+                    modifier = Modifier.size(27.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(15.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
             ) {
 
                 Text(
-                    text = productName,
+                    text = product.name,
                     color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "Live Firebase Price",
-                    color = Color.White.copy(alpha = 0.65f),
-                    fontSize = 13.sp
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-
-                Text(
-                    text = price,
-                    color = Color(0xFFFFD84D),
-                    fontSize = 22.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Black
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "+8.1%",
-                    color = Color(0xFF55F7B6),
+                    text = shortDescription,
+                    color = Color.White.copy(alpha = 0.65f),
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    lineHeight = 16.sp
                 )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+
+                Text(
+                    text = product.price,
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Black
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFF101513),
+                            shape = RoundedCornerShape(50.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = trendColor.copy(alpha = 0.55f),
+                            shape = RoundedCornerShape(50.dp)
+                        )
+                        .padding(horizontal = 9.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Icon(
+                        imageVector = trendIcon,
+                        contentDescription = null,
+                        tint = trendColor,
+                        modifier = Modifier.size(14.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = trendTitle,
+                        color = trendColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun EmptyMarketState() {
+fun CleanSentimentCard(
+    highProducts: Int,
+    lowProducts: Int
+) {
+
+    val total = highProducts + lowProducts
+
+    val highPercent =
+        if (total == 0) 0f else highProducts.toFloat() / total.toFloat()
+
+    val lowPercent =
+        if (total == 0) 0f else lowProducts.toFloat() / total.toFloat()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF151817)
+        )
+    ) {
+
+        Column(
+            modifier = Modifier
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFF25332E),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .padding(20.dp)
+        ) {
+
+            Text(
+                text = "Market Sentiment",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Black
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CleanSentimentBar(
+                title = "UP items",
+                percent = highPercent,
+                color = Color(0xFFFFD84D)
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            CleanSentimentBar(
+                title = "DOWN items",
+                percent = lowPercent,
+                color = Color(0xFF55F7B6)
+            )
+        }
+    }
+}
+
+@Composable
+fun CleanSentimentBar(
+    title: String,
+    percent: Float,
+    color: Color
+) {
+
+    Column {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(
+                text = title,
+                color = Color.White.copy(alpha = 0.75f),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "${(percent * 100).toInt()}%",
+                color = color,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        LinearProgressIndicator(
+            progress = percent,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(50.dp)),
+            color = color,
+            trackColor = Color(0xFF2D3330)
+        )
+    }
+}
+
+@Composable
+fun CleanEmptyMarketState() {
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF151817)
         )
@@ -357,18 +683,31 @@ fun EmptyMarketState() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(26.dp),
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFF25332E),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Icon(
-                imageVector = Icons.Default.Eco,
-                contentDescription = null,
-                tint = Color(0xFFFFD84D),
-                modifier = Modifier.size(58.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(70.dp)
+                    .background(Color(0xFF12352B), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Icon(
+                    imageVector = Icons.Default.Agriculture,
+                    contentDescription = null,
+                    tint = Color(0xFFFFD84D),
+                    modifier = Modifier.size(38.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "No live products",
@@ -381,9 +720,17 @@ fun EmptyMarketState() {
 
             Text(
                 text = "Add products from the Add Price screen",
-                color = Color.Gray,
+                color = Color.White.copy(alpha = 0.65f),
                 fontSize = 15.sp
             )
         }
     }
+}
+
+fun extractPriceValue(priceText: String): Double {
+
+    val cleanText =
+        priceText.replace("[^0-9.]".toRegex(), "")
+
+    return cleanText.toDoubleOrNull() ?: 0.0
 }

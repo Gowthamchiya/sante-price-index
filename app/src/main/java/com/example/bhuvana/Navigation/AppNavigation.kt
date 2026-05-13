@@ -11,6 +11,7 @@ import com.example.bhuvana.screens.DigitalSlateScreen
 import com.example.bhuvana.screens.EditProductScreen
 import com.example.bhuvana.screens.MarketWatchScreen
 import com.example.bhuvana.screens.ProfitCalculatorScreen
+import com.example.bhuvana.screens.SplashScreen
 import com.example.bhuvana.screens.UserProfileScreen
 
 @Composable
@@ -18,8 +19,12 @@ fun AppNavigation(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = "dashboard"
+        startDestination = "splash"
     ) {
+
+        composable("splash") {
+            SplashScreen(navController)
+        }
 
         composable("dashboard") {
             DashboardScreen(navController)
@@ -30,7 +35,7 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable("calculator") {
-            ProfitCalculatorScreen()
+            ProfitCalculatorScreen(navController)
         }
 
         composable("digitalSlate") {
@@ -38,7 +43,7 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable("profile") {
-            UserProfileScreen()
+            UserProfileScreen(navController)
         }
 
         composable("addProduct") {

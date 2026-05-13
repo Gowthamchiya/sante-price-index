@@ -2,16 +2,36 @@ package com.example.bhuvana.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddBusiness
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bhuvana.models.ProductItem
@@ -30,32 +50,41 @@ fun AddProductScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF101416))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF07110D),
+                        Color(0xFF0B1712),
+                        Color.Black
+                    )
+                )
+            )
             .padding(20.dp)
     ) {
 
         Text(
-            text = "Add Product Price",
-            color = Color.White,
+            text = "Add Today’s Price",
+            color = Color(0xFF55F7B6),
             fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Black
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Add today's mandi price for vendors",
-            color = Color.Gray,
-            fontSize = 16.sp
+            text = "Enter mandi product price. It will update live in Dashboard, Price Watch and Price Board.",
+            color = Color.White.copy(alpha = 0.75f),
+            fontSize = 15.sp,
+            lineHeight = 21.sp
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1C2022)
+                containerColor = Color(0xFF151817)
             )
         ) {
 
@@ -63,46 +92,37 @@ fun AddProductScreen() {
                 modifier = Modifier.padding(20.dp)
             ) {
 
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = {
-                        name = it
-                    },
-                    label = {
-                        Text("Product Name")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF00C853),
-                        unfocusedBorderColor = Color.Gray,
-                        cursorColor = Color.White
-                    )
+                Icon(
+                    imageVector = Icons.Default.Store,
+                    contentDescription = null,
+                    tint = Color(0xFFFFD84D)
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
+                Text(
+                    text = "Product Details",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                AddProductInputField(
+                    value = name,
+                    label = "Product Name",
+                    placeholder = "Example: Tomato",
+                    keyboardType = KeyboardType.Text,
+                    onChange = { name = it }
+                )
+
+                AddProductInputField(
                     value = price,
-                    onValueChange = {
-                        price = it
-                    },
-                    label = {
-                        Text("Price Example: ₹40/kg")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF00C853),
-                        unfocusedBorderColor = Color.Gray,
-                        cursorColor = Color.White
-                    )
+                    label = "Price",
+                    placeholder = "Example: ₹40/kg",
+                    keyboardType = KeyboardType.Text,
+                    onChange = { price = it }
                 )
 
                 Spacer(modifier = Modifier.height(22.dp))
@@ -138,7 +158,7 @@ fun AddProductScreen() {
 
                                 Toast.makeText(
                                     context,
-                                    "Product added successfully",
+                                    "Price added successfully",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -148,30 +168,34 @@ fun AddProductScreen() {
 
                                 Toast.makeText(
                                     context,
-                                    "Failed to add product",
+                                    "Failed to add price",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
 
                     },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
+                        .height(58.dp),
+                    shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00C853)
+                        containerColor = Color(0xFF00B37E),
+                        disabledContainerColor = Color.Gray
                     )
                 ) {
 
                     Icon(
                         imageVector = Icons.Default.AddBusiness,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = Color.Black
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.padding(4.dp))
 
                     Text(
-                        text = if (isLoading) "Adding..." else "Add Product",
+                        text = if (isLoading) "Adding Price..." else "Add Live Price",
+                        color = Color.Black,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -179,4 +203,42 @@ fun AddProductScreen() {
             }
         }
     }
+}
+
+@Composable
+fun AddProductInputField(
+    value: String,
+    label: String,
+    placeholder: String,
+    keyboardType: KeyboardType,
+    onChange: (String) -> Unit
+) {
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = {
+            Text(label)
+        },
+        placeholder = {
+            Text(placeholder)
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 7.dp),
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType
+        ),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedBorderColor = Color(0xFF55F7B6),
+            unfocusedBorderColor = Color.Gray,
+            focusedLabelColor = Color(0xFF55F7B6),
+            unfocusedLabelColor = Color.Gray,
+            cursorColor = Color(0xFF55F7B6)
+        )
+    )
 }
